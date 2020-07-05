@@ -1,14 +1,21 @@
-import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { RootNavigaton } from './navigation/PlacesNavigator';
+import { Provider } from 'react-redux';
+import { store } from './store';
+import { init } from "./helpers/db";
 
+init().then(() => {
+  console.log("Initialized database");
+}).catch(err => {
+  console.log("Initialized database failed", err)
+})
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
+    <Provider store={store}>
+      <RootNavigaton />
+    </Provider>
+  )
 }
 
 const styles = StyleSheet.create({
