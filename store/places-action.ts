@@ -3,11 +3,23 @@ import * as FileSystem from "expo-file-system";
 import { Dispatch } from "redux";
 import { insertPlace, fetchPlaces } from "../helpers/db";
 import { SQLResultSet } from "expo-sqlite";
+import { ILocation, IReverseGeoLocation } from "../interface/Location";
+import { KEYS } from "../constants/Keys";
 
-export const addPlace = (title: string, image: string) => {
+export const addPlace = (title: string, image: string, location: ILocation) => {
     return async (dispatch: Dispatch) => {
-        const fileName = image.split("/").pop();
+        const res = await fetch(`https://apis.mapmyindia.com/advancedmaps/v1/${KEYS.MAPS_REST_API_KEY}/rev_geocode?lat=${location.latitude}&lng=${location.longitude}`)
+        if (!res.ok) {
+            throw new Error("Something went wrong!");
+        }
+        const resData: IReverseGeoLocation = await res.json();
+        // console.log("Location:- ", resData);
+        if (resData.responseCode !== 200 && !resData.results) {
+            throw new Error("Something went wrong!");
+        }
         try {
+            const fileName = image.split("/").pop();
+            const address = resData.results[0].formatted_address;
             let newPath = FileSystem.documentDirectory;
             if (newPath === null) {
                 throw new Error("Path not found");
@@ -17,12 +29,14 @@ export const addPlace = (title: string, image: string) => {
                 from: image,
                 to: newPath
             });
-            const dbResult = await insertPlace(title, newPath, "Dummy address", 15.6, 16.5);
-            if (!(dbResult as SQLResultSet).insertId) {
-                throw new Error("Error")
+            if (location.latitude !== undefined && location.longitude !== undefined) {
+                const dbResult = await insertPlace(title, newPath, address, location.latitude, location.longitude);
+                if (!(dbResult as SQLResultSet).insertId) {
+                    throw new Error("Error")
+                }
+                // console.log("Db result", (dbResult as SQLResultSet))
+                dispatch(addPlaceAction((dbResult as SQLResultSet).insertId, title, newPath, address, { latitude: location.latitude, longitude: location.longitude }));
             }
-            console.log("Db result", (dbResult as SQLResultSet))
-            dispatch(addPlaceAction((dbResult as SQLResultSet).insertId, title, newPath));
         } catch (err) {
             console.log(err);
             throw err;
@@ -31,13 +45,16 @@ export const addPlace = (title: string, image: string) => {
 }
 
 
-const addPlaceAction = (id: number, title: string, image: string): PlacesInterface.IAddPlacesAction => {
+const addPlaceAction = (id: number, title: string, image: string, address: string, cords: PlacesInterface.ICords): PlacesInterface.IAddPlacesAction => {
     return {
         type: PlacesInterface.PlacesTypeEnum.ADD_PLACE,
         payload: {
-            id: id,
-            title: title,
-            image: image
+            id,
+            title,
+            image,
+            address,
+            latitude: cords.latitude,
+            longitude: cords.longitude
         }
     }
 }

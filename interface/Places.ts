@@ -1,7 +1,15 @@
+export interface ICords {
+    latitude: number;
+    longitude: number;
+}
+
 export interface IPlaces {
     id: number;
     title: string;
     image: string;
+    address: string;
+    latitude: number;
+    longitude: number;
 }
 
 export interface IPlacesReducer {

@@ -27,7 +27,7 @@ export const PlaceListScreen: React.FC<IPlaceListScreen> = (props) => {
                 <PlaceItem
                     image={item.item.image}
                     title={item.item.title}
-                    address={""}
+                    address={item.item.address}
                     onSelect={() => {
                         props.navigation?.navigate(PlacesNavigationEnum.PlaceDetail, {
                             placeTitle: item.item.title,

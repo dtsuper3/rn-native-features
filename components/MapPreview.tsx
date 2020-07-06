@@ -1,36 +1,46 @@
 import React from "react";
-import { Image, StyleSheet, View } from "react-native";
+import {
+    Image,
+    StyleSheet,
+    TouchableOpacity
+} from "react-native";
 import { KEYS } from "../constants/Keys";
 
 interface IMapPreview {
-    longitude: string;
-    latitude: string;
+    longitude: number | undefined;
+    latitude: number | undefined;
+    style: any;
+    onPress: () => void
 }
 
 export const MapPreview: React.FC<IMapPreview> = (props) => {
     let imagePreviewUrl = "";
     if (props.latitude && props.longitude) {
-        imagePreviewUrl = `https://apis.mapmyindia.com/advancedmaps/v1/${KEYS.MAPS_API_KEYS}/still_image?center=${props.latitude},${props.longitude}&zoom=12&size=400x200&ssf=1&markers=${props.latitude},${props.longitude}&size=400x200`;
+        imagePreviewUrl = `https://apis.mapmyindia.com/advancedmaps/v1/${KEYS.MAPS_API_KEYS}/still_image?center=${props.latitude},${props.longitude}&zoom=18&size=400x200&ssf=0&markers=${props.latitude},${props.longitude}`;
     }
-    console.log(imagePreviewUrl)
+    console.log("Image:- ", imagePreviewUrl)
     return (
-        <View style={styles.mapPreview}>
+        <TouchableOpacity
+            style={{ ...styles.mapPreview, ...props.style }}
+            onPress={props.onPress}>
             {
-                (props.latitude && props.longitude) ?
-                    <Image source={{ uri: imagePreviewUrl }} onLoad={(mes) => console.log("Image:- ", mes)} /> :
+                (props.latitude && props.longitude && imagePreviewUrl.length > 0) ?
+                    <Image
+                        source={{ uri: imagePreviewUrl }}
+                        style={styles.mapImg} /> :
                     props.children
             }
-        </View>
+        </TouchableOpacity>
     )
 }
 
 const styles = StyleSheet.create({
     mapPreview: {
-        marginBottom: 10,
+        justifyContent: "center",
+        alignItems: "center"
+    },
+    mapImg: {
         width: "100%",
-        height: 150,
-        borderColor: "#ccc",
-        borderWidth: 1,
-        justifyContent: "center"
+        height: "100%"
     }
 })
