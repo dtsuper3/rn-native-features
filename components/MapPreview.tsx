@@ -10,14 +10,15 @@ interface IMapPreview {
 export const MapPreview: React.FC<IMapPreview> = (props) => {
     let imagePreviewUrl = "";
     if (props.latitude && props.longitude) {
-        imagePreviewUrl = `https://api.tomtom.com/map/1/staticimage?key=${KEYS.MAPS_API_KEYS}&zoom=15&center=${props.longitude},${props.latitude}&format=png&width=400&height=200`;
+        imagePreviewUrl = `https://apis.mapmyindia.com/advancedmaps/v1/${KEYS.MAPS_API_KEYS}/still_image?center=${props.latitude},${props.longitude}&zoom=12&size=400x200&ssf=1&markers=${props.latitude},${props.longitude}&size=400x200`;
     }
     console.log(imagePreviewUrl)
     return (
         <View style={styles.mapPreview}>
             {
                 (props.latitude && props.longitude) ?
-                    <Image source={{ uri: imagePreviewUrl }} /> : props.children
+                    <Image source={{ uri: imagePreviewUrl }} onLoad={(mes) => console.log("Image:- ", mes)} /> :
+                    props.children
             }
         </View>
     )
