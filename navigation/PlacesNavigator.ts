@@ -1,4 +1,4 @@
-import { createStackNavigator, createAppContainer } from "react-navigation";
+import { createStackNavigator, createAppContainer, createSwitchNavigator } from "react-navigation";
 
 import { PlaceListScreen } from "../screens/PlaceListScreen";
 import { PlacesNavigationEnum } from "../interface/Navigation";
@@ -7,6 +7,7 @@ import { NewPlaceScreen } from "../screens/NewPlaceScreen";
 import { MapScreen } from "../screens/MapScreen";
 import { Platform } from "react-native";
 import { COLORS } from "../constants/Color";
+import { AuthSrceen } from "../screens/Auth";
 
 
 const PlacesNavigator = createStackNavigator({
@@ -23,4 +24,9 @@ const PlacesNavigator = createStackNavigator({
     }
 })
 
-export const RootNavigaton = createAppContainer(PlacesNavigator);
+const MainNavigator = createSwitchNavigator({
+    [PlacesNavigationEnum.Auth]: AuthSrceen,
+    [PlacesNavigationEnum.Main]: PlacesNavigator
+})
+
+export const RootNavigaton = createAppContainer(MainNavigator);
