@@ -17,9 +17,10 @@ import { ILocation } from "../interface/Location";
 
 interface ILocationPicker extends NavigationContainerProps {
     onLocationPicked: (location: ILocation) => void;
+    location: ILocation;
 }
 
-export const LocationPicker: React.FC<ILocationPicker> = ({ onLocationPicked, ...props }) => {
+export const LocationPicker: React.FC<ILocationPicker> = ({ onLocationPicked, location, ...props }) => {
     const [pickedLocation, setPickedLocation] = useState<ILocation>({
         latitude: undefined,
         longitude: undefined
@@ -33,6 +34,15 @@ export const LocationPicker: React.FC<ILocationPicker> = ({ onLocationPicked, ..
             onLocationPicked(mapPickedLocation)
         }
     }, [mapPickedLocation, onLocationPicked])
+
+    useEffect(() => {
+        if (location) {
+            setPickedLocation({
+                latitude: location.latitude,
+                longitude: location.longitude
+            })
+        }
+    }, [location])
 
     const verifyPermissions = async () => {
         const result = await Permissions.askAsync(Permissions.LOCATION);

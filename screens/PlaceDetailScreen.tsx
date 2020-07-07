@@ -1,21 +1,57 @@
-import React from 'react'
-import { View, Text, StyleSheet, Image } from 'react-native'
+import React, { useCallback, useEffect } from 'react'
+import { View, Text, StyleSheet, Image, Platform, Alert, ToastAndroid } from 'react-native'
 import { NavigationContainerProps } from 'react-navigation'
-import { ScrollView } from 'react-native-gesture-handler'
+import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler'
 import { MapPreview } from "../components/MapPreview";
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store';
 import { COLORS } from '../constants/Color';
 import { PlacesNavigationEnum } from '../interface/Navigation';
+import { MaterialIcons } from '@expo/vector-icons';
+import { deletePlaceById } from '../helpers/db';
+import { SQLResultSet } from 'expo-sqlite';
+import * as PlacesAction from "../store/places-action";
+
 
 interface IPlaceDetailScreen extends NavigationContainerProps { }
 
-export const PlaceDetailScreen: React.FC<IPlaceDetailScreen> = (props) => {
-    const placeId = props.navigation?.getParam("placeId");
+export const PlaceDetailScreen: React.FC<IPlaceDetailScreen> = ({ navigation }) => {
+    const placeId = navigation?.getParam("placeId");
     const selectedPlace = useSelector((state: RootState) => state.places.places.find(item => item.id === placeId))
+    const dispatch = useDispatch();
+
+    const deleteLocation = useCallback(() => {
+        const removePlaces = async () => {
+            try {
+                const res = await deletePlaceById(placeId) as SQLResultSet;
+                if (res.insertId == undefined) {
+                    ToastAndroid.show("Removed Successfully", 3000);
+                    dispatch(PlacesAction.fetchPlacesDispatcher());
+                    navigation?.goBack();
+                    // console.log("Delete:- ", res);
+                }
+            } catch (err) {
+                Alert.alert("Error", err.message, [{ text: "Okay" }])
+                // console.log(err);
+            }
+        }
+
+        Alert.alert(
+            "Remove Places",
+            "Are you sure to remove places?",
+            [{ text: "Cancel" }, { text: "Okay", onPress: removePlaces }],
+            {
+                cancelable: true
+            }
+        )
+    }, [placeId]);
+
+    useEffect(() => {
+        navigation?.setParams({ deleteLocation: deleteLocation, placeId: placeId });
+    }, [deleteLocation, placeId])
 
     const handleShowMap = () => {
-        props.navigation?.navigate(PlacesNavigationEnum.Map, {
+        navigation?.navigate(PlacesNavigationEnum.Map, {
             readonly: true,
             initialLocation: {
                 latitude: selectedPlace?.latitude,
@@ -23,6 +59,7 @@ export const PlaceDetailScreen: React.FC<IPlaceDetailScreen> = (props) => {
             }
         });
     }
+
     return (
         <ScrollView contentContainerStyle={{ alignItems: "center" }}>
             <Image source={{ uri: selectedPlace?.image }} style={styles.image} />
@@ -35,7 +72,6 @@ export const PlaceDetailScreen: React.FC<IPlaceDetailScreen> = (props) => {
                     longitude={selectedPlace?.longitude}
                     onPress={handleShowMap}
                     style={styles.mapPreview}
-
                 />
             </View>
         </ScrollView>
@@ -43,8 +79,24 @@ export const PlaceDetailScreen: React.FC<IPlaceDetailScreen> = (props) => {
 }
 
 (PlaceDetailScreen as any).navigationOptions = (navData: NavigationContainerProps) => {
+    const deleteFn = navData.navigation?.getParam("deleteLocation");
+    const placeId = navData.navigation?.getParam("placeId");
     return {
-        headerTitle: navData.navigation?.getParam("placeTitle")
+        headerTitle: navData.navigation?.getParam("placeTitle"),
+        headerRight: <View style={styles.headerActions}>
+            <TouchableOpacity onPress={deleteFn}>
+                <MaterialIcons
+                    name="delete"
+                    size={26}
+                    color={COLORS.danger} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navData.navigation?.navigate(PlacesNavigationEnum.NewPlace, { placeId: placeId })}>
+                <MaterialIcons
+                    name="edit"
+                    size={26}
+                    color={COLORS.info} />
+            </TouchableOpacity>
+        </View>
     }
 }
 
@@ -82,6 +134,10 @@ const styles = StyleSheet.create({
         height: 300,
         borderBottomLeftRadius: 10,
         borderBottomRightRadius: 10
+    },
+    headerActions: {
+        flexDirection: "row",
+        marginRight: 10
     }
 
 })

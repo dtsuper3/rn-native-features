@@ -1,13 +1,14 @@
-import React, { useState, useCallback } from 'react'
-import { View, Text, StyleSheet, TextInput, Button } from 'react-native'
+import React, { useState, useCallback, useEffect } from 'react'
+import { View, Text, StyleSheet, TextInput, Button, ToastAndroid } from 'react-native'
 import { NavigationContainerProps } from 'react-navigation'
 import { ScrollView } from 'react-native-gesture-handler'
 import { COLORS } from '../constants/Color'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import * as placesAction from "../store/places-action";
 import { ImgPicker } from '../components/ImagePicker';
 import { LocationPicker } from "../components/LocationPicker";
 import { ILocation } from '../interface/Location'
+import { RootState } from '../store'
 
 interface INewPlaceScreen extends NavigationContainerProps { }
 
@@ -20,14 +21,37 @@ export const NewPlaceScreen: React.FC<INewPlaceScreen> = (props) => {
     });
 
     const dispatch = useDispatch();
+    const placeId = props.navigation?.getParam("placeId");
+    const placeData = useSelector((state: RootState) => state.places.places.find(item => item.id === placeId));
+
+    useEffect(() => {
+        if (placeData) {
+            // console.log("Use Effect Data:- ", placeData);
+            setTitle(placeData.title);
+            setImage(placeData.image);
+            setSelectedLocation({
+                latitude: placeData.latitude,
+                longitude: placeData.longitude
+            })
+        }
+
+    }, [placeData]);
+
     const handleInputChange = (text: string) => {
         setTitle(text);
     }
 
     const savePlaceHnadler = () => {
-        if (image !== undefined && typeof image === "string") {
-            dispatch(placesAction.addPlace(title, image, selectedLocation))
-            props.navigation?.goBack()
+        if (image !== undefined && typeof image === "string" && title.length > 0 && selectedLocation.latitude && selectedLocation.longitude) {
+            if (placeId) {
+            } else {
+                ToastAndroid.show("Saved Successfully", 3000);
+                dispatch(placesAction.addPlace(title, image, selectedLocation))
+                props.navigation?.goBack();
+
+            }
+        } else {
+            ToastAndroid.show("Please fill all details", 3000);
         }
     }
 
@@ -47,12 +71,13 @@ export const NewPlaceScreen: React.FC<INewPlaceScreen> = (props) => {
                     style={styles.textInput}
                     value={title}
                     onChangeText={handleInputChange} />
-                <ImgPicker onImageTake={handleImageTaken} />
+                <ImgPicker onImageTake={handleImageTaken} image={image} />
                 <LocationPicker
                     navigation={props.navigation}
-                    onLocationPicked={handleLocationPicked} />
+                    onLocationPicked={handleLocationPicked}
+                    location={selectedLocation} />
                 <Button
-                    title="Save Place"
+                    title={placeId ? "Update Place" : "Save Place"}
                     color={COLORS.primary}
                     onPress={savePlaceHnadler} />
             </View>
@@ -61,8 +86,9 @@ export const NewPlaceScreen: React.FC<INewPlaceScreen> = (props) => {
 }
 
 (NewPlaceScreen as any).navigationOptions = (navData: NavigationContainerProps) => {
+    const placeId = navData.navigation?.getParam("placeId");
     return {
-        headerTitle: "Add Place",
+        headerTitle: placeId ? "Update Place" : "Add Place",
     }
 
 }

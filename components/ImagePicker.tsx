@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Button, Text, StyleSheet, Image, Alert } from 'react-native';
 import { COLORS } from "../constants/Color";
 import * as ImagePicker from "expo-image-picker";
@@ -6,9 +6,16 @@ import * as Permissions from "expo-permissions";
 
 interface IImgPicker {
     onImageTake: any;
+    image: string | undefined;
 }
 export const ImgPicker: React.FC<IImgPicker> = (props) => {
     const [pickedImage, setPickedImage] = useState<string>();
+
+    useEffect(() => {
+        if (props.image) {
+            setPickedImage(props.image)
+        }
+    }, [props.image]);
 
     const verifyPermissions = async () => {
         const result = await Permissions.askAsync(Permissions.CAMERA, Permissions.CAMERA_ROLL);

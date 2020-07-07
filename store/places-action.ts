@@ -63,7 +63,7 @@ export const fetchPlacesDispatcher = () => {
     return async (dispatch: Dispatch) => {
         try {
             const dbResult = await fetchPlaces();
-            console.log("Result ", (dbResult as SQLResultSet).rows)
+            // console.log("Result ", (dbResult as SQLResultSet).rows)
             if (!(dbResult as SQLResultSet).rows) {
                 throw new Error("Not Found")
             }
