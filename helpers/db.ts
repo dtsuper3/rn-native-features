@@ -78,7 +78,7 @@ export const updatePlace = (title: string, image: string, address: string, latit
     return new Promise((resolve, reject) => {
         db.transaction((tx) => {
             tx.executeSql(
-                "UPDATE places SET title = ? , image = ?, address = ?, latitude = ?, longitude = ? WHERE id = ?",
+                `UPDATE places SET title = ? , image = ?, address = ?, latitude = ?, longitude = ? WHERE id = ?`,
                 [title, image, address, latitude, longitude, id],
                 (_, result) => {
                     resolve(result);

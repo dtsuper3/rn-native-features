@@ -18,11 +18,17 @@ export interface IPlacesReducer {
 
 export enum PlacesTypeEnum {
     ADD_PLACE = "ADD_PLACE",
-    FETCH_PLACES = "FETCH_PLACES"
+    FETCH_PLACES = "FETCH_PLACES",
+    UPDATE_PLACE = "UPDATE_PLACE"
 }
 
 export interface IAddPlacesAction {
     type: PlacesTypeEnum.ADD_PLACE;
+    payload: IPlaces;
+}
+
+export interface IUpdatePlacesAction {
+    type: PlacesTypeEnum.UPDATE_PLACE;
     payload: IPlaces;
 }
 
@@ -33,4 +39,4 @@ export interface IFetchPlacesAction {
 
 
 
-export type IPlacesAction = IAddPlacesAction | IFetchPlacesAction;
+export type IPlacesAction = IAddPlacesAction | IFetchPlacesAction | IUpdatePlacesAction;

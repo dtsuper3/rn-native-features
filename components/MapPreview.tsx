@@ -18,7 +18,7 @@ export const MapPreview: React.FC<IMapPreview> = (props) => {
     if (props.latitude && props.longitude) {
         imagePreviewUrl = `https://apis.mapmyindia.com/advancedmaps/v1/${KEYS.MAPS_API_KEYS}/still_image?center=${props.latitude},${props.longitude}&zoom=18&size=400x200&ssf=0&markers=${props.latitude},${props.longitude}`;
     }
-    console.log("Image:- ", imagePreviewUrl)
+    // console.log("Image:- ", imagePreviewUrl)
     return (
         <TouchableOpacity
             style={{ ...styles.mapPreview, ...props.style }}

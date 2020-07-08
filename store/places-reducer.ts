@@ -12,6 +12,22 @@ export const PlacesReducer = (state = initialState, action: PlacesInterface.IPla
             return {
                 places: state.places.concat(newPlace)
             }
+        case PlacesInterface.PlacesTypeEnum.UPDATE_PLACE:
+            return {
+                places: state.places.map(item => {
+                    if (item.id === action.payload.id) {
+                        return {
+                            ...item,
+                            address: action.payload.address,
+                            image: action.payload.image,
+                            latitude: action.payload.latitude,
+                            longitude: action.payload.longitude,
+                            title: action.payload.title
+                        }
+                    }
+                    return item;
+                })
+            }
         case PlacesInterface.PlacesTypeEnum.FETCH_PLACES:
             return {
                 places: action.payload.map(item => new Places(item.id, item.title, item.image, item.address, item.latitude, item.longitude))

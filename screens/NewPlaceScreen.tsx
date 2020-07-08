@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react'
-import { View, Text, StyleSheet, TextInput, Button, ToastAndroid } from 'react-native'
+import { View, Text, StyleSheet, TextInput, Button, ToastAndroid, ActivityIndicator } from 'react-native'
 import { NavigationContainerProps } from 'react-navigation'
 import { ScrollView } from 'react-native-gesture-handler'
 import { COLORS } from '../constants/Color'
@@ -9,6 +9,7 @@ import { ImgPicker } from '../components/ImagePicker';
 import { LocationPicker } from "../components/LocationPicker";
 import { ILocation } from '../interface/Location'
 import { RootState } from '../store'
+import { PlacesNavigationEnum } from '../interface/Navigation'
 
 interface INewPlaceScreen extends NavigationContainerProps { }
 
@@ -19,6 +20,7 @@ export const NewPlaceScreen: React.FC<INewPlaceScreen> = (props) => {
         latitude: undefined,
         longitude: undefined
     });
+    const [isLoading, setIsLoading] = useState(false);
 
     const dispatch = useDispatch();
     const placeId = props.navigation?.getParam("placeId");
@@ -41,14 +43,25 @@ export const NewPlaceScreen: React.FC<INewPlaceScreen> = (props) => {
         setTitle(text);
     }
 
-    const savePlaceHnadler = () => {
+    const savePlaceHnadler = async () => {
         if (image !== undefined && typeof image === "string" && title.length > 0 && selectedLocation.latitude && selectedLocation.longitude) {
+            setIsLoading(true);
             if (placeId) {
+                try {
+                    await dispatch(placesAction.updatePlaceDispatcher(placeId, title, image, selectedLocation))
+                    props.navigation?.navigate(PlacesNavigationEnum.Places);
+                } catch (err) {
+                    ToastAndroid.show(err, 3000)
+                }
+                setIsLoading(false);
             } else {
-                ToastAndroid.show("Saved Successfully", 3000);
-                dispatch(placesAction.addPlace(title, image, selectedLocation))
-                props.navigation?.goBack();
-
+                try {
+                    await dispatch(placesAction.addPlace(title, image, selectedLocation))
+                    props.navigation?.goBack();
+                } catch (err) {
+                    ToastAndroid.show(err, 3000)
+                }
+                setIsLoading(false);
             }
         } else {
             ToastAndroid.show("Please fill all details", 3000);
@@ -76,10 +89,17 @@ export const NewPlaceScreen: React.FC<INewPlaceScreen> = (props) => {
                     navigation={props.navigation}
                     onLocationPicked={handleLocationPicked}
                     location={selectedLocation} />
-                <Button
-                    title={placeId ? "Update Place" : "Save Place"}
-                    color={COLORS.primary}
-                    onPress={savePlaceHnadler} />
+                {
+                    isLoading ?
+                        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", marginTop: 5 }}>
+                            <ActivityIndicator size="large" color={COLORS.primary} />
+                        </View> :
+                        <Button
+                            title={placeId ? "Update Place" : "Save Place"}
+                            color={COLORS.primary}
+                            onPress={savePlaceHnadler} />
+
+                }
             </View>
         </ScrollView>
     )
